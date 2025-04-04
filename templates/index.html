@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Passport Photo Generator</title>
+  <style>
+    video, canvas {
+      display: block;
+      margin: 10px auto;
+    }
+    #loading {
+      display: none;
+      text-align: center;
+      font-weight: bold;
+      color: green;
+    }
+  </style>
+</head>
+<body>
+  <h2 style="text-align:center;">📸 Capture Your Passport Photo</h2>
+  
+  <video id="video" width="320" height="240" autoplay></video>
+  <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
+
+  <div style="text-align:center;">
+    <button id="capture">Capture Photo</button>
+  </div>
+
+  <div id="loading">Processing... Please wait ⏳</div>
+
+  <form id="photoForm" method="POST" action="/process">
+    <input type="hidden" name="imageData" id="imageData">
+  </form>
+
+  <script>
+    const video = document.getElementById("video");
+    const canvas = document.getElementById("canvas");
+    const captureBtn = document.getElementById("capture");
+    const loading = document.getElementById("loading");
+    const imageDataInput = document.getElementById("imageData");
+    const form = document.getElementById("photoForm");
+
+    // Open camera
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => {
+        video.srcObject = stream;
+      });
+
+    captureBtn.onclick = () => {
+      // Draw the current video frame to canvas
+      const context = canvas.getContext("2d");
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      // Stop the video stream
+      const stream = video.srcObject;
+      const tracks = stream.getTracks();
+      tracks.forEach(track => track.stop());
+
+      video.style.display = "none";
+      captureBtn.style.display = "none";
+      loading.style.display = "block";
+
+      // Get base64 image data and submit
+      const imageData = canvas.toDataURL("image/png");
+      imageDataInput.value = imageData;
+      form.submit();
+    };
+  </script>
+</body>
+</html>
